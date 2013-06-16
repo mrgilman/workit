@@ -1,1 +1,1 @@
-require File.expand_path('../workit/server', __FILE__)
+require_relative 'workit/server'
