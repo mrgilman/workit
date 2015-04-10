@@ -2,26 +2,30 @@ require 'rack'
 
 module Workit
   class Server
-    class Response < Rack::Response; end
-
     def call(env)
       body = content(env)
-      body ? response([body]) : not_found
+      body ? response(body: [body]) : not_found
     end
 
-    def response(body=[], status=200, header={"Content-Type" => "text/html"})
-      Response.new(body, status, header)
+    private
+
+    def response(status: 200, header: {"Content-Type" => "text/html"}, body: [])
+      [status, header, body]
     end
 
     def content(env)
       begin
-        if route(env).empty?
-          File.read("pages/index.html")
-        else
-          File.read("pages/#{route(env)}.html")
-        end
+        File.read(filepath(env))
       rescue Errno::ENOENT # No such file or directory
         nil
+      end
+    end
+
+    def filepath(env)
+      if route(env).empty?
+        filename = "pages/index.html"
+      else
+        filename = "pages/#{route(env)}.html"
       end
     end
 
@@ -30,7 +34,7 @@ module Workit
     end
 
     def not_found
-      response("Not Found", 404, {"Content-Type" => "text/plain"})
+      response(status: 404, body: ["Not Found"])
     end
   end
 end
